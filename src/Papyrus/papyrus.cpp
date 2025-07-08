@@ -9,6 +9,8 @@ namespace Papyrus
 	//0 is regular item transfer, 1 is stealing from a container or corpse, 2 is pickpocketing, 3 is transfer as teammate
 	bool OpenInventoryEx(STATIC_ARGS, RE::Actor* target, int type)
 	{
+		if (!target || target->IsDisabled()) return false;
+
 		if (type < 0 || type > 3)
 		{
 			return false;
@@ -23,6 +25,8 @@ namespace Papyrus
 
 	RE::TESForm* GetFormOwner(RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
+		if (!contRef || !item) return nullptr;
+
 		if (item->IsGold() || item->IsLockpick()) { return nullptr; }
 
 		auto* invChanges = contRef->GetInventoryChanges(true);
@@ -46,6 +50,7 @@ namespace Papyrus
 
 	RE::TESNPC* GetFormActorOwner(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
+		if (!contRef || !item) return nullptr;
 		auto* ownerForm = GetFormOwner(contRef, item);
 		return ownerForm->As<RE::TESNPC>();
 	}
@@ -53,12 +58,15 @@ namespace Papyrus
 	
 	RE::TESFaction* GetFormFactionOwner(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
+		if (!contRef || !item) return nullptr;
 		auto* ownerForm = GetFormOwner(contRef, item);
 		return ownerForm->As<RE::TESFaction>();
 	}
 
 	bool IsFormStolen(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
+		if (!contRef || !item) return false;
+
 		if (item->IsGold() || item->IsLockpick()) { return false; }
 
 		auto* ownerForm = GetFormOwner(contRef, item);
@@ -80,6 +88,8 @@ namespace Papyrus
 
 	bool SetFormOwner(RE::TESObjectREFR* contRef, RE::TESForm* item, RE::TESForm* owner)
 	{
+		if (!contRef || !item || !owner) return false;
+
 		bool success = false;
 
 		auto* invChanges = contRef->GetInventoryChanges(true);
@@ -118,8 +128,9 @@ namespace Papyrus
 		return SetFormOwner(contRef, item, owner);
 	}
 
-	float GetTotalGoldValue(STATIC_ARGS, RE::TESForm* item)
+	int GetTotalGoldValue(STATIC_ARGS, RE::TESForm* item)
 	{
+		if (!item) return 0;
 		if (item->IsMagicItem())
 		{
 			return item->As<RE::MagicItem>()->CalculateTotalGoldValue(RE::PlayerCharacter::GetSingleton());
@@ -130,53 +141,6 @@ namespace Papyrus
 		}
 	}
 
-	void ForceCloseMenu(STATIC_ARGS, std::string menuName)
-	{
-		using Message = RE::UI_MESSAGE_TYPE;
-		Message messageID = Message::kHide;
-		auto    uiStr = RE::InterfaceStrings::GetSingleton();
-
-		RE::BSFixedString menuStr;
-		if (menuName == "GiftMenu")
-		{
-			menuStr = uiStr->giftMenu;
-		}
-		else if (menuName == "BarterMenu")
-		{
-			menuStr = uiStr->barterMenu;
-		}
-		else if (menuName == "InventoryMenu")
-		{
-			menuStr = uiStr->inventoryMenu;
-		}
-		else if (menuName == "ContainerMenu")
-		{
-			menuStr = uiStr->containerMenu;
-		}
-		else if (menuName == "Dialogue Menu")
-		{
-			menuStr = uiStr->dialogueMenu;
-		}
-		else if (menuName == "Lockpicking Menu")
-		{
-			menuStr = uiStr->lockpickingMenu;
-		}
-		//else if (menuName == "Crafting Menu")
-		//{
-		//	menuStr = uiStr->lockpickingMenu;
-		//	RE::ObjectRefHandle curFurnitureRef = RE::PlayerCharacter::GetSingleton()->GetOccupiedFurniture();
-		//}
-
-		if (menuStr.empty())
-		{
-			return;
-		}
-
-		auto messageQueue = RE::UIMessageQueue::GetSingleton();
-		if (messageQueue) {
-			messageQueue->AddMessage(menuStr, messageID, nullptr);
-		}
-	}
 
 	void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
@@ -193,8 +157,6 @@ namespace Papyrus
 		BIND(IsFormStolen);
 		logger::info("  >Binding GetTotalGoldValue..."sv);
 		BIND(GetTotalGoldValue);
-		logger::info("  >Binding ForceCloseMenu..."sv);
-		BIND(ForceCloseMenu);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {
