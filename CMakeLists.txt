@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.24)
 
 option(FULL_RELEASE "Finalizes the build, compressing everything into a BSA." OFF)
+option(COPY_SCRIPTS "Copies the resulting scripts (if present) into the release." ON)
+option(COPY_ARCHIVE "Copies the resulting archive (if present) into the release." OFF)
 option(OUTDATED "Applies 1.5.97 offsets/IDs." OFF)
 
 # -------- Project ----------
@@ -111,8 +113,7 @@ if(DEFINED OUTPUT_FOLDER)
 			-P "${PROJECT_SOURCE_DIR}/CMake/Scripts/CMake-Copy-Artifacts.cmake"
     )
 
-	# Loose scripts for non-release builds (why? Because I said so smile)
-    if(NOT FULL_RELEASE)
+    if(COPY_SCRIPTS)
         add_custom_command(
         TARGET "${PROJECT_NAME}"
         POST_BUILD
@@ -121,6 +122,19 @@ if(DEFINED OUTPUT_FOLDER)
             -DCOMPILED_SCRIPTS="${CMAKE_BINARY_DIR}/Scripts"
             -DOUTPUT_FOLDER="${OUTPUT_FOLDER}"
             -P "${PROJECT_SOURCE_DIR}/CMake/Scripts/CMake-Copy-Scripts.cmake"
+        VERBATIM
+    )
+    endif()
+
+    if(COPY_ARCHIVE)
+        add_custom_command(
+        TARGET "${PROJECT_NAME}"
+        POST_BUILD
+        COMMAND "${CMAKE_COMMAND}"
+            -DSRC_DIR="${PROJECT_SOURCE_DIR}/Data"
+			-DDST_DIR="${OUTPUT_FOLDER}"
+			-DPROJECT_NAME="${PROJECT_NAME}"
+            -P "${PROJECT_SOURCE_DIR}/CMake/Scripts/CMake-Copy-BSA.cmake"
         VERBATIM
     )
     endif()
