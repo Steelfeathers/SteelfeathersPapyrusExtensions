@@ -8,7 +8,7 @@ option(OUTDATED "Applies 1.5.97 offsets/IDs." OFF)
 # -------- Project ----------
 project(
 	SteelfeathersPapyrusExtensions
-	VERSION 1.0.0
+	VERSION 1.1.0
 	LANGUAGES CXX
 )
 

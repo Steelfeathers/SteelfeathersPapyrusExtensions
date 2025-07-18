@@ -171,6 +171,65 @@ namespace Papyrus
 		return item ? item->GetGoldValue() : 0;
 	}
 
+	static bool IsValidContainerItem(RE::TESForm* item)
+	{
+		if (item->Is(RE::FormType::AlchemyItem)) return true;
+		if (item->Is(RE::FormType::Ammo)) return true;
+		if (item->Is(RE::FormType::Armor)) return true;
+		if (item->Is(RE::FormType::Book)) return true;
+		if (item->Is(RE::FormType::Ingredient)) return true;
+		if (item->Is(RE::FormType::LeveledItem)) return true;
+		if (item->Is(RE::FormType::KeyMaster)) return true;
+		if (item->Is(RE::FormType::Misc)) return true;
+		if (item->Is(RE::FormType::Note)) return true;
+		if (item->Is(RE::FormType::Scroll)) return true;
+		if (item->Is(RE::FormType::SoulGem)) return true;
+		if (item->Is(RE::FormType::Weapon)) return true;
+		if (item->Is(RE::FormType::Light))
+		{
+			auto* lightObj = item->As<RE::TESObjectLIGH>();
+			if (lightObj->CanBeCarried()) return true;
+		}
+		return false;
+	}
+
+	static bool AddItemToContainer(STATIC_ARGS, RE::TESObjectCONT* cont, RE::TESForm* item, std::int32_t count = 1, RE::TESForm* owner = nullptr)
+	{
+		if (!cont || !item) {
+			a_vm->TraceStack("AddItemToContainer passed with at least 1 NONE argument.",
+				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
+			return false;
+		}
+
+		if (count <= 0)
+		{
+			a_vm->TraceStack("AddItemToContainer passed with Count <= 0.",
+				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
+			return false;
+		}
+
+		if (!IsValidContainerItem(item))
+		{
+			a_vm->TraceStack("AddItemToContainer passed with an invalid type for Item.",
+				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
+			return false;
+		}
+
+		if (owner != nullptr)
+		{
+			auto* ownerFaction = owner->As<RE::TESFaction>();
+			auto* ownerActor = owner->As<RE::TESNPC>();
+			if (!ownerFaction && !ownerActor)
+			{
+				a_vm->TraceStack("AddItemToContainer passed with an invalid type for OWNER, must be Faction or ActorBase.",
+					a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
+				owner = nullptr;
+			}
+		}
+
+		bool success = cont->AddObjectToContainer(item->As<RE::TESBoundObject>(), count, owner);
+		return success;
+	}
 
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
@@ -187,6 +246,8 @@ namespace Papyrus
 		BIND(IsFormStolen);
 		logger::info("  >Binding GetTotalGoldValue..."sv);
 		BIND(GetTotalGoldValue);
+		logger::info("  >Binding AddItemToContainer..."sv);
+		BIND(AddItemToContainer);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {
