@@ -44,8 +44,11 @@ bool function SetFormFactionOwner(ObjectReference inventoryObjRef, Form item, Fa
 int function GetTotalGoldValue(Form item) global native
 
 ;-----------------------------------------------------------------------
-;Adds the given item to the specified container record (not the container object reference, the actual container record)
-;This is useful for adding items to merchants that will be restocked when the merchant resets, but without needing to edit the merchant container record directly
-;Item can be any type of valid "player can pick this up" thing, or a LeveledList. Not intended for use with object references.
-;Owner can be an ActorBase or a Faction
-bool function AddItemToContainer(Container cont, Form item, Int count = 1, Form owner = none) global native
+;Gets the enchantment (including any player-made enchantment) of the passed-in form, if it has one.
+;InventoryObjRef is the actor or container currently holding the item you want to evaluate.
+enchantment function GetFormEnchantment(ObjectReference inventoryObjRef, Form item) global native
+
+;-----------------------------------------------------------------------
+;Returns the number of enchanted items contained by inventoryObjRef that have the specified keyword.
+;Can find both base enchantments and player-made enchantments
+int function GetNumEnchantedFormsWithKeyword(ObjectReference inventoryObjRef, Keyword aKeyword) global native

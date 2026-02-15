@@ -171,6 +171,108 @@ namespace Papyrus
 		return item ? item->GetGoldValue() : 0;
 	}
 
+	static RE::EnchantmentItem* GetFormEnchantment(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
+	{
+		if (!contRef || !item) return nullptr;
+		auto* base = skyrim_cast<RE::TESBoundObject*>(item);
+		if (!base) {
+			return nullptr;
+		}
+
+		//Non-player made enchantment
+		auto ench = base->As<RE::TESEnchantableForm>();
+		if (ench && ench->formEnchanting) {
+			return ench->formEnchanting;
+		}
+
+		auto* invChanges = contRef->GetInventoryChanges(true);
+		if (!invChanges) {
+			return nullptr;
+		}
+
+		auto* invLists = invChanges->entryList;
+		if (!invLists || invLists->empty()) {
+			return nullptr;
+		}
+
+		for (auto& entry : *invChanges->entryList) {
+			auto* obj = entry ? entry->GetObject() : nullptr;
+			if (!obj || obj != base) {
+				continue;
+			}
+			auto* xLists = entry->extraLists;
+			if (!xLists) {
+				continue;
+			}
+
+			//Player-made enchantment
+			for (auto* xList : *xLists) {
+				auto xEnch = xList->GetByType<RE::ExtraEnchantment>();
+				if (xEnch && xEnch->enchantment) {
+					return xEnch->enchantment;
+				}
+			}
+		}
+
+		return nullptr;
+	}
+
+	static int GetNumEnchantedFormsWithKeyword(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::BGSKeyword* a_keyword)
+	{
+		if (!contRef || !a_keyword) return 0;
+		int count = 0;
+		std::string_view keywordEDID = a_keyword->GetFormEditorID();
+		//logger::info("  >GetNumEnchantedFormsWithKeyword() - keyword EDID = {}"sv, keywordEDID);
+
+		auto* invChanges = contRef->GetInventoryChanges(true);
+		if (!invChanges) {
+			return 0;
+		}
+
+		auto* invLists = invChanges->entryList;
+		if (!invLists || invLists->empty()) {
+			return 0;
+		}
+
+		for (auto& entry : *invChanges->entryList) {
+			auto* obj = entry ? entry->GetObject() : nullptr;
+			if (!obj) {
+				continue;
+			}
+
+			//Non-player made enchantment
+			auto ench = obj->As<RE::TESEnchantableForm>();
+			if (ench && ench->formEnchanting) {
+				for (auto& effect : ench->formEnchanting->effects) {
+					if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
+						count += 1;
+					}
+				}
+				continue;
+			}
+
+			auto* xLists = entry->extraLists;
+			if (!xLists) {
+				continue;
+			}
+
+			//Player-made enchantment
+			for (auto* xList : *xLists) {
+				auto xEnch = xList->GetByType<RE::ExtraEnchantment>();
+				if (xEnch && xEnch->enchantment) {
+					for (auto& effect : xEnch->enchantment->effects) {
+						if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
+							count += 1;
+						}
+					}
+				}
+			}
+		}
+
+		return count;
+	}
+
+	/*
 	static bool IsValidContainerItem(RE::TESForm* item)
 	{
 		if (item->Is(RE::FormType::AlchemyItem)) return true;
@@ -230,6 +332,7 @@ namespace Papyrus
 		bool success = cont->AddObjectToContainer(item->As<RE::TESBoundObject>(), count, owner);
 		return success;
 	}
+	*/
 
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
@@ -246,8 +349,10 @@ namespace Papyrus
 		BIND(IsFormStolen);
 		logger::info("  >Binding GetTotalGoldValue..."sv);
 		BIND(GetTotalGoldValue);
-		logger::info("  >Binding AddItemToContainer..."sv);
-		BIND(AddItemToContainer);
+		logger::info("  >Binding GetFormEnchantment..."sv);
+		BIND(GetFormEnchantment);
+		logger::info("  >Binding GetNumEnchantedFormsWithKeyword..."sv);
+		BIND(GetNumEnchantedFormsWithKeyword);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {
