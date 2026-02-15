@@ -179,6 +179,10 @@ namespace Papyrus
 			return nullptr;
 		}
 
+		if (!contRef->GetInventoryCounts().contains(base)) {
+			return nullptr;
+		}
+
 		//Non-player made enchantment
 		auto ench = base->As<RE::TESEnchantableForm>();
 		if (ench && ench->formEnchanting) {
@@ -221,7 +225,6 @@ namespace Papyrus
 	{
 		if (!contRef || !a_keyword) return 0;
 		int count = 0;
-		std::string_view keywordEDID = a_keyword->GetFormEditorID();
 		//logger::info("  >GetNumEnchantedFormsWithKeyword() - keyword EDID = {}"sv, keywordEDID);
 
 		auto* invChanges = contRef->GetInventoryChanges(true);
@@ -244,7 +247,7 @@ namespace Papyrus
 			auto ench = obj->As<RE::TESEnchantableForm>();
 			if (ench && ench->formEnchanting) {
 				for (auto& effect : ench->formEnchanting->effects) {
-					if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
+					if (effect->baseEffect->HasKeyword(a_keyword)) {
 						count += 1;
 						break;
 					}
@@ -262,7 +265,7 @@ namespace Papyrus
 				auto xEnch = xList->GetByType<RE::ExtraEnchantment>();
 				if (xEnch && xEnch->enchantment) {
 					for (auto& effect : xEnch->enchantment->effects) {
-						if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
+						if (effect->baseEffect->HasKeyword(a_keyword)) {
 							count += 1;
 							break;
 						}
@@ -273,68 +276,6 @@ namespace Papyrus
 
 		return count;
 	}
-
-	/*
-	static bool IsValidContainerItem(RE::TESForm* item)
-	{
-		if (item->Is(RE::FormType::AlchemyItem)) return true;
-		if (item->Is(RE::FormType::Ammo)) return true;
-		if (item->Is(RE::FormType::Armor)) return true;
-		if (item->Is(RE::FormType::Book)) return true;
-		if (item->Is(RE::FormType::Ingredient)) return true;
-		if (item->Is(RE::FormType::LeveledItem)) return true;
-		if (item->Is(RE::FormType::KeyMaster)) return true;
-		if (item->Is(RE::FormType::Misc)) return true;
-		if (item->Is(RE::FormType::Note)) return true;
-		if (item->Is(RE::FormType::Scroll)) return true;
-		if (item->Is(RE::FormType::SoulGem)) return true;
-		if (item->Is(RE::FormType::Weapon)) return true;
-		if (item->Is(RE::FormType::Light))
-		{
-			auto* lightObj = item->As<RE::TESObjectLIGH>();
-			if (lightObj->CanBeCarried()) return true;
-		}
-		return false;
-	}
-
-	static bool AddItemToContainer(STATIC_ARGS, RE::TESObjectCONT* cont, RE::TESForm* item, std::int32_t count = 1, RE::TESForm* owner = nullptr)
-	{
-		if (!cont || !item) {
-			a_vm->TraceStack("AddItemToContainer passed with at least 1 NONE argument.",
-				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
-			return false;
-		}
-
-		if (count <= 0)
-		{
-			a_vm->TraceStack("AddItemToContainer passed with Count <= 0.",
-				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
-			return false;
-		}
-
-		if (!IsValidContainerItem(item))
-		{
-			a_vm->TraceStack("AddItemToContainer passed with an invalid type for Item.",
-				a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
-			return false;
-		}
-
-		if (owner != nullptr)
-		{
-			auto* ownerFaction = owner->As<RE::TESFaction>();
-			auto* ownerActor = owner->As<RE::TESNPC>();
-			if (!ownerFaction && !ownerActor)
-			{
-				a_vm->TraceStack("AddItemToContainer passed with an invalid type for OWNER, must be Faction or ActorBase.",
-					a_stackID, RE::BSScript::IVirtualMachine::Severity::kWarning);
-				owner = nullptr;
-			}
-		}
-
-		bool success = cont->AddObjectToContainer(item->As<RE::TESBoundObject>(), count, owner);
-		return success;
-	}
-	*/
 
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
