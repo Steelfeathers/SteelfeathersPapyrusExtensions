@@ -246,6 +246,7 @@ namespace Papyrus
 				for (auto& effect : ench->formEnchanting->effects) {
 					if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
 						count += 1;
+						break;
 					}
 				}
 				continue;
@@ -263,6 +264,7 @@ namespace Papyrus
 					for (auto& effect : xEnch->enchantment->effects) {
 						if (effect->baseEffect->HasKeywordByEditorID(keywordEDID)) {
 							count += 1;
+							break;
 						}
 					}
 				}
