@@ -52,3 +52,14 @@ enchantment function GetFormEnchantment(ObjectReference inventoryObjRef, Form it
 ;Returns the number of enchanted items contained by inventoryObjRef that have the specified keyword.
 ;Can find both base enchantments and player-made enchantments
 int function GetNumEnchantedFormsWithKeyword(ObjectReference inventoryObjRef, Keyword aKeyword) global native
+
+;-----------------------------------------------------------------------
+;Returns the actual name of the item contained by inventoryObjRef.
+;The difference between this and GetName() or GetDisplayName() is that this function will correctly return a player-set name for the item
+;rather than the name of the base object.
+string function GetFormDisplayName(ObjectReference inventoryObjRef, Form item) global native
+
+;-----------------------------------------------------------------------
+;Returns the per-hit enchantment charge cost of an enchanted weapon contained by inventoryObjRef.
+;Wielder is the actor who would theoretically be using the enchanted weapon; wielder does not have to be the same as inventoryObjRef.
+float function GetWeaponEnchantmentCost(ObjectReference inventoryObjRef, Actor wielder, Form item) global native

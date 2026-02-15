@@ -171,7 +171,7 @@ namespace Papyrus
 		return item ? item->GetGoldValue() : 0;
 	}
 
-	static RE::EnchantmentItem* GetFormEnchantment(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
+	static RE::EnchantmentItem* GetFormEnchantmentInternal(RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
 		if (!contRef || !item) return nullptr;
 		auto* base = skyrim_cast<RE::TESBoundObject*>(item);
@@ -219,6 +219,11 @@ namespace Papyrus
 		}
 
 		return nullptr;
+	}
+
+	static RE::EnchantmentItem* GetFormEnchantment(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
+	{
+		return GetFormEnchantmentInternal(contRef, item);
 	}
 
 	static int GetNumEnchantedFormsWithKeyword(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::BGSKeyword* a_keyword)
@@ -277,6 +282,71 @@ namespace Papyrus
 		return count;
 	}
 
+	static float GetWeaponEnchantmentCost(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::Actor* wielder, RE::TESForm* item)
+	{
+		if (!wielder) return 0;
+
+		if (!item->Is(RE::FormType::Weapon)) {
+			//logger::info("  >GetWeaponEnchantmentCost() ERROR item is not a weapon, aborted."sv);
+			return 0;
+		}
+
+		auto* ench = GetFormEnchantmentInternal(contRef, item);
+		if (!ench) {
+			//logger::info("  >GetWeaponEnchantmentCost() WARNING no enchantment found, aborted."sv);
+			return 0;
+		}
+
+		float val = ench->CalculateMagickaCost(wielder);
+		return val;
+	}
+
+
+	static std::string_view GetFormDisplayName(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
+	{
+		if (!contRef || !item) return "";
+		auto* base = skyrim_cast<RE::TESBoundObject*>(item);
+		if (!base) {
+			return "";
+		}
+
+		if (!contRef->GetInventoryCounts().contains(base)) {
+			return "";
+		}
+
+		auto* invChanges = contRef->GetInventoryChanges(true);
+		if (!invChanges) {
+			return "";
+		}
+
+		auto* invLists = invChanges->entryList;
+		if (!invLists || invLists->empty()) {
+			return "";
+		}
+
+		for (auto& entry : *invChanges->entryList) {
+			auto* obj = entry ? entry->GetObject() : nullptr;
+			if (!obj || obj != base) {
+				continue;
+			}
+			auto* xLists = entry->extraLists;
+			if (!xLists) {
+				continue;
+			}
+
+			//Custom player-added name
+			for (auto* xList : *xLists) {
+				auto xTextData = xList->GetByType<RE::ExtraTextDisplayData>();
+				if (xTextData && xTextData->displayName != "") {
+					return xTextData->displayName;
+				}
+			}
+		}
+
+		//Default base item name
+		return item->GetName();
+	}
+
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
 		BIND(OpenInventoryEx);
@@ -294,8 +364,12 @@ namespace Papyrus
 		BIND(GetTotalGoldValue);
 		logger::info("  >Binding GetFormEnchantment..."sv);
 		BIND(GetFormEnchantment);
+		logger::info("  >Binding GetWeaponEnchantmentCost..."sv);
+		BIND(GetWeaponEnchantmentCost);
 		logger::info("  >Binding GetNumEnchantedFormsWithKeyword..."sv);
 		BIND(GetNumEnchantedFormsWithKeyword);
+		logger::info("  >Binding GetFormDisplayName..."sv);
+		BIND(GetFormDisplayName);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {
