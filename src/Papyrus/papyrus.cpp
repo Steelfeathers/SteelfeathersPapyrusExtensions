@@ -114,19 +114,16 @@ namespace Papyrus
 
 		for (auto& entry : *invChanges->entryList) {
 			auto* obj = entry ? entry->GetObject() : nullptr;
-			if (!obj || obj != base) {
-				continue;
-			}
-			auto* xLists = entry->extraLists;
-			if (!xLists) {
-				continue;
-			}
+			if (obj != base) continue;
 
-			for (auto* xList : *xLists) {
-				auto extraOwnership = xList->GetByType<RE::ExtraOwnership>();
-				if (extraOwnership) {
-					xList->SetOwner(owner);
-					success = true;
+			auto* xLists = entry->extraLists;
+			if (xLists && !xLists->empty()) {
+				for (auto* xList : *xLists) {
+					auto extraOwnership = xList ? xList->GetByType<RE::ExtraOwnership>() : nullptr;
+					if (extraOwnership) {
+						xList->SetOwner(owner);
+						success = true;
+					}
 				}
 			}
 		}
@@ -201,19 +198,17 @@ namespace Papyrus
 
 		for (auto& entry : *invChanges->entryList) {
 			auto* obj = entry ? entry->GetObject() : nullptr;
-			if (!obj || obj != base) {
-				continue;
-			}
-			auto* xLists = entry->extraLists;
-			if (!xLists) {
-				continue;
-			}
+			if (obj != base) continue;
 
-			//Player-made enchantment
-			for (auto* xList : *xLists) {
-				auto xEnch = xList->GetByType<RE::ExtraEnchantment>();
-				if (xEnch && xEnch->enchantment) {
-					return xEnch->enchantment;
+			auto* xLists = entry->extraLists;
+			if (xLists && !xLists->empty()) {
+
+				//Player-made enchantment
+				for (auto* xList : *xLists) {
+					auto xEnch = xList ? xList->GetByType<RE::ExtraEnchantment>() : nullptr;
+					if (xEnch && xEnch->enchantment) {
+						return xEnch->enchantment;
+					}
 				}
 			}
 		}
@@ -326,19 +321,16 @@ namespace Papyrus
 
 		for (auto& entry : *invChanges->entryList) {
 			auto* obj = entry ? entry->GetObject() : nullptr;
-			if (!obj || obj != base) {
-				continue;
-			}
-			auto* xLists = entry->extraLists;
-			if (!xLists) {
-				continue;
-			}
+			if (obj != base) continue;
 
-			//Custom player-added name
-			for (auto* xList : *xLists) {
-				auto xTextData = xList->GetByType<RE::ExtraTextDisplayData>();
-				if (xTextData && xTextData->displayName != "") {
-					return xTextData->displayName;
+			auto* xLists = entry->extraLists;
+			if (xLists && !xLists->empty()) {
+				//Custom player-added name
+				for (auto* xList : *xLists) {
+					auto xTextData = xList ? xList->GetByType<RE::ExtraTextDisplayData>() : nullptr;
+					if (xTextData && xTextData->displayName != "") {
+						return xTextData->displayName;
+					}
 				}
 			}
 		}
