@@ -296,7 +296,6 @@ namespace Papyrus
 		return val;
 	}
 
-
 	static std::string_view GetFormDisplayName(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item)
 	{
 		if (!contRef || !item) return "";
@@ -339,6 +338,26 @@ namespace Papyrus
 		return item->GetName();
 	}
 
+	static RE::TESObjectREFR* GetCurrentCrosshairRef(STATIC_ARGS)
+	{
+		auto crosshair_data = RE::CrosshairPickData::GetSingleton();
+		if (crosshair_data && crosshair_data->target)
+		{
+			return crosshair_data->target.get().get();
+		}
+		return nullptr;
+	}
+
+	/*
+	static bool SetMagicEffectDescription(STATIC_ARGS, RE::EffectSetting* a_mgef, std::string_view a_descr)
+	{
+		if (!a_mgef) return false;
+
+		a_mgef->magicItemDescription = a_descr;
+		return true;
+	}
+	*/
+
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
 		BIND(OpenInventoryEx);
@@ -362,6 +381,10 @@ namespace Papyrus
 		BIND(GetNumEnchantedFormsWithKeyword);
 		logger::info("  >Binding GetFormDisplayName..."sv);
 		BIND(GetFormDisplayName);
+		logger::info("  >Binding GetCurrentCrosshairRef..."sv);
+		BIND(GetCurrentCrosshairRef);
+		//logger::info("  >Binding SetMagicEffectDescription..."sv);
+		//BIND(SetMagicEffectDescription);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {

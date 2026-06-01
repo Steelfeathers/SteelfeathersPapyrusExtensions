@@ -63,3 +63,11 @@ string function GetFormDisplayName(ObjectReference inventoryObjRef, Form item) g
 ;Returns the per-hit enchantment charge cost of an enchanted weapon contained by inventoryObjRef.
 ;Wielder is the actor who would theoretically be using the enchanted weapon; wielder does not have to be the same as inventoryObjRef.
 float function GetWeaponEnchantmentCost(ObjectReference inventoryObjRef, Actor wielder, Form item) global native
+
+;-----------------------------------------------------------------------
+;Gets the current object reference under the cursor/crosshairs, if there is one
+;Alternate to the vanilla Game.GetCurrentCrosshairRef() function, which doesn't work
+ObjectReference function GetCurrentCrosshairRef() global native
+
+;-----------------------------------------------------------------------
+bool function SetMagicEffectDescription(MagicEffect magEff, String descr) global native
