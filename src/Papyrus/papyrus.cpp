@@ -338,6 +338,62 @@ namespace Papyrus
 		return item->GetName();
 	}
 
+	/*
+	static bool SetFormDisplayName(STATIC_ARGS, RE::TESObjectREFR* contRef, RE::TESForm* item, std::string name, bool a_force)
+	{
+		bool renamed = false;
+
+		if (!contRef || !item) return renamed;
+		auto* base = skyrim_cast<RE::TESBoundObject*>(item);
+		if (!base) {
+			return renamed;
+		}
+
+		if (!contRef->GetInventoryCounts().contains(base)) {
+			return renamed;
+		}
+
+		auto* invChanges = contRef->GetInventoryChanges(true);
+		if (!invChanges) {
+			return renamed;
+		}
+
+		auto* invLists = invChanges->entryList;
+		if (!invLists || invLists->empty()) {
+			return renamed;
+		}
+
+		for (auto& entry : *invChanges->entryList) {
+			auto* obj = entry ? entry->GetObject() : nullptr;
+			if (obj != base) continue;
+
+			auto* xLists = entry->extraLists;
+			if (xLists && !xLists->empty()) {
+				for (auto* xList : *xLists) {
+					auto xTextData = xList ? xList->GetByType<RE::ExtraTextDisplayData>() : nullptr;
+					if (xTextData) {
+						bool inUse = xTextData->displayNameText || xTextData->ownerQuest;
+						if (inUse && a_force) {
+							xTextData->displayNameText = nullptr;
+							xTextData->ownerQuest = nullptr;
+						}
+						renamed = !inUse || a_force;
+						xTextData->SetName(name.c_str());
+						return renamed;
+					}
+				}
+
+				auto xTextData = new RE::ExtraTextDisplayData(name.c_str());
+				xLists->front()->Add(xTextData);
+				renamed = true;
+				return renamed;
+			}
+		}
+
+		
+	}
+	*/
+
 	static RE::TESObjectREFR* GetCurrentCrosshairRef(STATIC_ARGS)
 	{
 		auto crosshair_data = RE::CrosshairPickData::GetSingleton();
@@ -345,18 +401,12 @@ namespace Papyrus
 		{
 			return crosshair_data->target.get().get();
 		}
+		if (crosshair_data && crosshair_data->targetActor)
+		{
+			return crosshair_data->targetActor.get().get();
+		}
 		return nullptr;
 	}
-
-	/*
-	static bool SetMagicEffectDescription(STATIC_ARGS, RE::EffectSetting* a_mgef, std::string_view a_descr)
-	{
-		if (!a_mgef) return false;
-
-		a_mgef->magicItemDescription = a_descr;
-		return true;
-	}
-	*/
 
 	static void Bind(VM& a_vm) {
 		logger::info("  >Binding OpenInventoryEx..."sv);
@@ -383,8 +433,8 @@ namespace Papyrus
 		BIND(GetFormDisplayName);
 		logger::info("  >Binding GetCurrentCrosshairRef..."sv);
 		BIND(GetCurrentCrosshairRef);
-		//logger::info("  >Binding SetMagicEffectDescription..."sv);
-		//BIND(SetMagicEffectDescription);
+		//logger::info("  >Binding SetFormDisplayName..."sv);
+		//BIND(SetFormDisplayName);
 	}
 
 	bool RegisterFunctions(VM* a_vm) {

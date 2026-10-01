@@ -69,5 +69,7 @@ float function GetWeaponEnchantmentCost(ObjectReference inventoryObjRef, Actor w
 ;Alternate to the vanilla Game.GetCurrentCrosshairRef() function, which doesn't work
 ObjectReference function GetCurrentCrosshairRef() global native
 
+;bool function SetFormDisplayName(ObjectReference inventoryObjRef, Form item, string name, bool force) global native
+
 ;-----------------------------------------------------------------------
-bool function SetMagicEffectDescription(MagicEffect magEff, String descr) global native
+;bool function SetMagicEffectDescription(MagicEffect magEff, String descr) global native
